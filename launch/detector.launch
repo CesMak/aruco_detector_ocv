@@ -3,7 +3,7 @@
     <arg name="use_rviz" default="True" />
     <arg name="use_camera" default="False" />
     <arg name="use_bag" default="True" />
-    <arg name="bag_name" default="640x480_logitech_aruco3" />
+    <arg name="bag_name" default="640x480_logitech_aruco3_compressed" />
 
     <arg name="image_width" default="640" />
     <arg name="image_height" default="480" />
@@ -60,7 +60,7 @@
     <arg name="dictionary_name" default="DICT_4X4_1000" />
     <arg name="blur_window_size" default="7" />
     <arg name="num_detected" default="25" /><!-- 0: do not use it, -->
-    <arg name="min_prec_value" default="80" /><!-- 0: do not use it, 80 means aruco marker must be detected in 80% of the last pics to be displayed -->
+    <arg name="min_prec_value" default="0" /><!-- 0: do not use it, 80 means aruco marker must be detected in 80% of the last pics to be displayed -->
     <node pkg="aruco_detector_ocv" type="node" name="aruco_detector_ocv" output="screen">
         <param name="camera" type="string" value="$(arg camera)"/>
         <param name="camera_info" type="string" value="$(arg camera_info)"/>

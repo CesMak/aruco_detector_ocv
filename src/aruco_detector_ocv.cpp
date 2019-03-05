@@ -78,6 +78,13 @@ tf2::Vector3 cv_vector3d_to_tf_vector3(const Vec3d &vec) {
     return {vec[0], vec[1], vec[2]};
 }
 
+double getPrec(std::vector<int> ids, int i){
+ 	vector<int> current_vector(num_detected);
+	current_vector = ids_hashmap[ids[i]];
+        int num_detections = std::accumulate(current_vector.begin(), current_vector.end(), 0);
+	return (double) num_detections/num_detected *100;
+}
+
 tf2::Quaternion cv_vector3d_to_tf_quaternion(const Vec3d &rotation_vector) {
     Mat rotation_matrix;
     auto ax = rotation_vector[0], ay = rotation_vector[1], az = rotation_vector[2];
@@ -179,11 +186,7 @@ if(ids.size()>0)
 
 	for(int i = 0; i<ids.size();i++)
 	{
- 	vector<int> current_vector(num_detected);
-	current_vector = ids_hashmap[ids[i]];
-        int num_detections = std::accumulate(current_vector.begin(), current_vector.end(), 0);
-	double prec = (double) num_detections/num_detected *100;
-
+	double prec = getPrec(ids,i);
 	if(prec>=min_prec_value)
 {
 	Vec3d distance_z_first = translation_vectors[i];
@@ -208,6 +211,9 @@ if(ids.size()>0)
     // Create and publish tf message for each marker
     for (auto i = 0; i < rotation_vectors.size(); ++i)
     {
+
+	if(getPrec(ids,i)>min_prec_value)
+{
 	//ROS_INFO("aruco markers tf");
         auto translation_vector = translation_vectors[i];
         auto rotation_vector = rotation_vectors[i];
@@ -226,6 +232,7 @@ if(ids.size()>0)
         tf_msg.transform.rotation.z = transform.getRotation().getZ();
         tf_msg.transform.rotation.w = transform.getRotation().getW();
         br.sendTransform(tf_msg);
+}
     }
 }
 
