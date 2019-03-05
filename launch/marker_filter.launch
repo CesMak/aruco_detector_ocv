@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<launch>
+    <arg name="alpha" default="0.9" doc="Blending ratio, parameter of the running average filter"/>
+    <arg name="marker_id" default="marker_id0" doc="Name of the marker to be filtered"/>
+    <arg name="parent_frame_id" default="kinect2_link" doc="Frame id of the marker's parent"/>
+    <arg name="marker_filtered_id" default="marker_id0_filtered" doc="Name of the filtered marker"/>
+    <arg name="rate" default="125" doc="TF publish rate (Hz)"/>
+    <node pkg="aruco_detector_ocv" type="marker_filter.py" name="aruco_marker_filter" output="screen">
+        <param name="alpha" type="double" value="$(arg alpha)"/>
+        <param name="marker_id" type="string" value="$(arg marker_id)"/>
+        <param name="parent_frame_id" type="string" value="$(arg parent_frame_id)"/>
+        <param name="marker_filtered_id" type="string" value="$(arg marker_filtered_id)"/>
+        <param name="rate" type="double" value="$(arg rate)"/>
+    </node>
+</launch>

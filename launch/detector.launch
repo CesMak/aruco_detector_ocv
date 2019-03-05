@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<launch>
+    <arg name="use_rviz" default="True" />
+    <arg name="use_camera" default="False" />
+    <arg name="use_bag" default="True" />
+    <arg name="bag_name" default="logitech_1920x1080_aruco" />
+
+    <arg name="image_width" default="640" />
+    <arg name="image_height" default="480" />
+
+
+   <!--   usb_cam node, as pixel_format use yuyv or mjpeg -->
+   <group if="$(arg use_camera)" >
+  <node name="usb_cam" pkg="usb_cam" type="usb_cam_node" output="screen">
+    <param name="video_device" value="/dev/video1" />
+    <param name="image_width" value="$(arg image_width)" />
+    <param name="image_height" value="$(arg image_height)" />
+    <param name="pixel_format" value="yuyv" />
+    <param name="camera_frame_id" value="usb_cam" />
+    <param name="io_method" value="mmap"/>
+  </node>
+  </group>
+
+    <!-- start bag file in a loop -->
+    <group if="$(arg use_bag)" >
+        <node pkg="rosbag" type="play" name="rosbag_play" args="-l $(find aruco_detector_ocv)/data/$(arg bag_name).bag" />
+    </group>
+
+
+<!-- 640x480 -->
+<node name="camera_info" pkg="rostopic" type="rostopic"
+  args="pub /camera/camera_info sensor_msgs/CameraInfo
+ '{header: {seq: 0, stamp: {secs: 0, nsecs: 0}, frame_id: 'camera1'},
+  height: 480, width: 640, distortion_model: 'plumb_bob',
+  D: [0.08269409104660361, -0.16570658726478218, 0.0013173694798400222, -0.0014110498528553663, 0.0],
+  K: [519.734208757597, 0.0, 302.85096428096654, 0.0, 520.5923676830233, 252.63525359615707, 0.0, 0.0, 1.0],
+  R: [1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0],
+  P: [523.3435668945312, 0.0, 301.43917490757667, 0.0, 0.0, 526.1812744140625, 253.1422791119403, 0.0, 0.0, 0.0, 1.0, 0.0],
+  binning_x: 0, binning_y: 0,
+  roi: {x_offset: 0, y_offset: 0, height: 480, width: 640, do_rectify: false}}' -r 2"/>  
+
+<!-- 1920x1080 
+<node name="camera_info" pkg="rostopic" type="rostopic"
+  args="pub /camera/camera_info sensor_msgs/CameraInfo
+ '{header: {seq: 0, stamp: {secs: 0, nsecs: 0}, frame_id: 'camera1'},
+  height: 480, width: 640, distortion_model: 'plumb_bob',
+  D: [0.061957, -0.124832, 0.002573, -0.004753, 0.0],
+  K: [1179.598752, 0.0, 928.099247, 0.0, 1177.000389, 558.635461, 0.0, 0.0, 1.0],
+  R: [1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0],
+  P: [1156.897217, 0.0, 908.598013, 0.0, 0.0, 1188.634277, 561.054263, 0.0, 0.0, 0.0, 1.0, 0.0],
+  binning_x: 0, binning_y: 0,
+  roi: {x_offset: 0, y_offset: 0, height: 480, width: 640, do_rectify: false}}' -r 2"/>
+-->
+
+    <arg name="camera" default="/usb_cam/image_raw" />
+    <arg name="camera_info" default="/camera/camera_info" />
+    <arg name="tf_prefix" default="marker_id" />
+    <arg name="show_detections" default="true" />
+    <arg name="marker_size" default="0.1" doc="length of the physical marker's side in meters"/>
+    <arg name="dictionary_name" default="DICT_4X4_1000" />
+    <arg name="blur_window_size" default="7" />
+    <node pkg="aruco_detector_ocv" type="node" name="aruco_detector_ocv" output="screen">
+        <param name="camera" type="string" value="$(arg camera)"/>
+        <param name="camera_info" type="string" value="$(arg camera_info)"/>
+        <param name="tf_prefix" type="string" value="$(arg tf_prefix)"/>
+        <param name="show_detections" type="bool" value="$(arg show_detections)"/>
+        <param name="marker_size" type="double" value="$(arg marker_size)"/>
+        <param name="dictionary_name" type="string" value="$(arg dictionary_name)"/>
+        <param name="image_width" type="double" value="$(arg image_width)"/>
+        <param name="image_height" type="double" value="$(arg image_height)"/>
+        <param name="blur_window_size" type="double" value="$(arg blur_window_size)"/>
+    </node>
+
+   <group if="$(arg use_rviz)" >
+        <node pkg="rviz" type="rviz" name="markers_extrinsic" args="-d $(find aruco_detector_ocv)/config/aruco_opencv.rviz"/>
+    </group>
+</launch>
