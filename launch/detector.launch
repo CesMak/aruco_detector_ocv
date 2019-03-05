@@ -3,7 +3,7 @@
     <arg name="use_rviz" default="True" />
     <arg name="use_camera" default="False" />
     <arg name="use_bag" default="True" />
-    <arg name="bag_name" default="640x480_logitech_aruco3_compressed" />
+    <arg name="bag_name" default="640x480_logitech_aruco3_compressed.orig" />
 
     <arg name="image_width" default="640" />
     <arg name="image_height" default="480" />

@@ -12,6 +12,45 @@ With this package you are able to:
 
 Please calibrate your camera first using: [camera_calibration](http://wiki.ros.org/camera_calibration).
 
+If you get (when using the camera)
+
+``` 
+[ERROR] [1551630633.628039127]: Cannot identify '/dev/video0': 2, No such file or directory
+```
+
+do 
+
+``` 
+sudo modprobe uvcvideo
+``` 
+
+See all adjustments in the **aruco_detector_osv/launch/detector.launch** 
+
+## Installation
+install dependencies, git, use ros kinetic, ubuntu 16.04.
+
+``` 
+cd ~/Desktop
+source /opt/ros/kinetic/setup.bash
+mkdir -p catkin_ws/src
+cd catkin_ws/src/
+git clone git@github.com:CesMak/aruco_detector_ocv.git (takes some time due to included bag to test this package)
+cd ..
+catkin init -w .
+catkin build
+source devel/setup.bash
+roscd roscd aruco_detector_ocv/data/
+rosbag decompress 640x480_logitech_aruco3_compressed.orig.bag 
+roslaunch aruco_detector_ocv detector.launch 
+```
+
+
+## Launch
+
+``` 
+roslaunch aruco_detector_ocv detector.launch 
+``` 
+
 ## License BSD
 If you want to use this package please contact: [me](https://simact.de/about_me).
 
