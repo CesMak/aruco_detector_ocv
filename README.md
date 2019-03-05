@@ -51,8 +51,17 @@ roslaunch aruco_detector_ocv detector.launch
 roslaunch aruco_detector_ocv detector.launch 
 ``` 
 
-## License BSD
-If you want to use this package please contact: [me](https://simact.de/about_me).
 
 ## Dependencies:
 cv_bridge image_geometry geometry_msgs roscpp rospy std_msgs tf2 tf2_ros image_transport std_msgs
+
+## Further adjustements
+
+There are many opencv parameters that can be adjusted internally to reduce the effect of lightening conditions.
+See [opencv_tutorial](https://docs.opencv.org/3.1.0/d5/dae/tutorial_aruco_detection.html)
+
+In order to adjust camera options use **scripts/marker_filter.py**
+
+## License BSD
+If you want to use this package please contact: [me](https://simact.de/about_me).
+
