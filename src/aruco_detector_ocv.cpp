@@ -60,7 +60,8 @@ int image_height = 480;
 bool enable_blur = true;
 
 // hashmap used for uncertainty:
-int num_detected = 100;
+int num_detected = 10;  // =0 -> not used
+int min_prec_value = 80; // min precentage value to be a detected marker.
 map<int,  std::vector<int>  > ids_hashmap;   // key: ids, value: number within last 100 imgs
 
 
@@ -153,9 +154,11 @@ void callback(const ImageConstPtr &image_msg) {
                 ros::shutdown();
             }
         }
-        return;
+       // return;
     }
 
+if(ids.size()>0)
+{
     // Compute poses of markers
     vector<Vec3d> rotation_vectors, translation_vectors;
     aruco::estimatePoseSingleMarkers(corners, marker_size, intrinsic_matrix, distortion_coefficients,
@@ -172,7 +175,7 @@ void callback(const ImageConstPtr &image_msg) {
 	if (result_img_pub_.getNumSubscribers() > 0)
 	{
 
-                cv::putText(display_image, "input: "+SSTR(image_width)+"x"+SSTR(image_height)+"@"+SSTR(image_fps)+"FPS    marker size: "+SSTR(marker_size)+" m"+" blur: "+SSTR(blur_window_size), cv::Point(10, 30), cv::FONT_HERSHEY_SIMPLEX, 0.8, CV_RGB(255, 255, 0), 2);
+                cv::putText(display_image, ""+SSTR(image_width)+"x"+SSTR(image_height)+"@"+SSTR(image_fps)+"FPS m. size: "+SSTR(marker_size)+" m"+" blur: "+SSTR(blur_window_size), cv::Point(10, 30), cv::FONT_HERSHEY_SIMPLEX, 0.8, CV_RGB(255, 255, 0), 2);
 
 	for(int i = 0; i<ids.size();i++)
 	{
@@ -181,10 +184,13 @@ void callback(const ImageConstPtr &image_msg) {
         int num_detections = std::accumulate(current_vector.begin(), current_vector.end(), 0);
 	double prec = (double) num_detections/num_detected *100;
 
+	if(prec>=min_prec_value)
+{
 	Vec3d distance_z_first = translation_vectors[i];
 	double distance_z = ROUND3(distance_z_first[2]);
-                cv::putText(display_image, "marker detected id: "+SSTR(ids[i])+" z dis: "+SSTR(distance_z)+" m  "+SSTR(ROUND2(prec))+" %", cv::Point(10, 70+i*30), cv::FONT_HERSHEY_SIMPLEX, 0.9, CV_RGB(0, 255, 0), 2);
+                cv::putText(display_image, "id: "+SSTR(ids[i])+" z dis: "+SSTR(distance_z)+" m  "+SSTR(ROUND2(prec))+" %", cv::Point(10, 70+i*30), cv::FONT_HERSHEY_SIMPLEX, 0.9, CV_RGB(0, 255, 0), 2);
 		result_img_pub_.publish(cv_bridge::CvImage(std_msgs::Header(), "bgr8", display_image).toImageMsg());
+}
 	}
 	}	
         //imshow("markers", display_image); // opencv im_show
@@ -221,10 +227,13 @@ void callback(const ImageConstPtr &image_msg) {
         tf_msg.transform.rotation.w = transform.getRotation().getW();
         br.sendTransform(tf_msg);
     }
-
+}
 
 // rotate vector:
 // [ 1 2 3 4 5 ]  --> [ 5 1 2 3 4 ]
+if(num_detected>0)
+{
+//std::cout<<"ids size: vor erase"<<ids.size()<<std::endl;
 map<int, vector<int>>::iterator il;
 for ( il = ids_hashmap.begin(); il != ids_hashmap.end(); il++ )
 {  
@@ -241,24 +250,20 @@ for ( it = ids_hashmap.begin(); it != ids_hashmap.end(); it++ )
   bool current_id_was_found = false;
   for(int j=0;j<ids.size();j++)
   {
-   if(ids[j] == it->first)
+   if( (ids[j] == it->first) && (it->second.size()>1))
    {
 	current_id_was_found = true;
-        ids.erase (ids.begin()+0);
-	//std::cout<<"erase "<<ids[j]<<std::endl;
+        ids.erase (ids.begin()+j);
+	//std::cout<<"erase "<<ids[j]<<"it first"<<it->first<<"size_second "<<it->second.size()<<std::endl;
    }
   }
   vector<int> current_vector(num_detected);
   current_vector = it->second;
+  current_vector[0] = 0;
   if (current_id_was_found)
   {
    current_vector[0] =1;
   //std::cout<<" 1 was set"<<it->first<<std::endl;
-  }
-  else
-  {
-   current_vector[0] = 0;
-  //std::cout<<" 0 was set"<<it->first<<std::endl;
   }
 it->second = current_vector;
 }
@@ -267,27 +272,43 @@ it->second = current_vector;
 // adde alle restlichen in ids (das sind die neu erkannten)
 for(int i = 0;i<ids.size();i++)
 {
+
    std::map<int, vector<int>>::iterator ittt = ids_hashmap.begin();
-   vector<int> tmp(num_detected);
-   tmp[0] = 1;
-   ids_hashmap.insert (ittt, std::pair<int, vector<int>>(ids[i], tmp)); 
-  //std::cout<<"added new: "<<it->first<<std::endl;
+   vector<int> tmpp(num_detected, 0);
+   tmpp[0] = 1;
+   std::string aa = "";
+   for(int i=0;i<num_detected;i++)
+	aa+=SSTR(tmpp[i])+",";
+
+   ids_hashmap.insert(make_pair(ids[i], tmpp));
+   //std::cout<<"added new: "<<ids[i]<<" "<<aa<<" size tmpp"<<tmpp.size()<<std::endl;
 }
 
 //// print the hashmap:
-//map<int, vector<int>>::iterator itt;
-//for ( itt = ids_hashmap.begin(); itt != ids_hashmap.end(); itt++ )
-//{
-//   vector<int> tmp(num_detected);
-//   tmp = itt->second; 
-//   std::string a = SSTR(itt->first)+"  ";
+map<int, vector<int>>::iterator itt;
+for ( itt = ids_hashmap.begin(); itt != ids_hashmap.end(); itt++ )
+{
+   vector<int> tmp(num_detected, 0);
+   tmp = itt->second; 
+// hack -> no idea why this is necessary
+if(itt->second.size() ==0)
+{
+   vector<int> tmpe(num_detected, 0);
+   tmpe[0] = 1;
+itt->second =tmpe;
+} // end of hack
+//   std::string a = SSTR(itt->first)+"  "+SSTR(itt->second.size())+ " ";
+	
+
+
 //   for(int i=0;i<tmp.size();i++)
 //{
 //   a+= SSTR(tmp[i])+",";
 //}
 //std::cout<<a<<std::endl;
-//}
+}
 
+} // num_detected>0
 
 
 }
@@ -332,6 +353,8 @@ int main(int argc, char **argv) {
     nh.param("image_fps", image_fps, 30);
     nh.param("image_width", image_width, 640);
     nh.param("image_height", image_height, 480);
+    nh.param("num_detected", num_detected, 50);
+    nh.param("min_prec_value", min_prec_value, 80);
 
     detector_params = aruco::DetectorParameters::create();
     detector_params->cornerRefinementMethod = aruco::CORNER_REFINE_SUBPIX;
