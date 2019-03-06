@@ -20,6 +20,7 @@
 #include <tf2/LinearMath/Vector3.h>
 #include <tf2/LinearMath/Quaternion.h>
 #include <tf2/LinearMath/Transform.h>
+#include <tf2_msgs/TFMessage.h>
 
 // ROS CvBridge
 #include "cv_bridge/cv_bridge.h"
@@ -38,6 +39,8 @@ using namespace cv;
 
 // Publisher
 image_transport::Publisher result_img_pub_;
+ros::Publisher tf_list_pub_;
+
 
 #define SSTR(x) static_cast<std::ostringstream&>(std::ostringstream() << std::dec << x).str()
 #define ROUND2(x) std::round(x * 100) / 100
@@ -209,31 +212,35 @@ if(ids.size()>0)
     auto stamp = ros::Time::now();
 
     // Create and publish tf message for each marker
+    tf2_msgs::TFMessage tf_msg_list;
     for (auto i = 0; i < rotation_vectors.size(); ++i)
     {
 
-	if(getPrec(ids,i)>min_prec_value)
-{
-	//ROS_INFO("aruco markers tf");
-        auto translation_vector = translation_vectors[i];
-        auto rotation_vector = rotation_vectors[i];
-        auto transform = create_transform(translation_vector, rotation_vector);
-        geometry_msgs::TransformStamped tf_msg;
-        tf_msg.header.stamp = stamp;
-        tf_msg.header.frame_id = frame_id;
-        stringstream ss;
-        ss << marker_tf_prefix << ids[i];
-        tf_msg.child_frame_id = ss.str();
-        tf_msg.transform.translation.x = transform.getOrigin().getX();
-        tf_msg.transform.translation.y = transform.getOrigin().getY();
-        tf_msg.transform.translation.z = transform.getOrigin().getZ();
-        tf_msg.transform.rotation.x = transform.getRotation().getX();
-        tf_msg.transform.rotation.y = transform.getRotation().getY();
-        tf_msg.transform.rotation.z = transform.getRotation().getZ();
-        tf_msg.transform.rotation.w = transform.getRotation().getW();
-        br.sendTransform(tf_msg);
-}
+	    if(getPrec(ids,i)>min_prec_value)
+        {
+            //ROS_INFO("aruco markers tf");
+            auto translation_vector = translation_vectors[i];
+            auto rotation_vector = rotation_vectors[i];
+            auto transform = create_transform(translation_vector, rotation_vector);
+            geometry_msgs::TransformStamped tf_msg;
+            tf_msg.header.stamp = stamp;
+            tf_msg.header.frame_id = frame_id;
+            stringstream ss;
+            ss << marker_tf_prefix << ids[i];
+            tf_msg.child_frame_id = ss.str();
+            tf_msg.transform.translation.x = transform.getOrigin().getX();
+            tf_msg.transform.translation.y = transform.getOrigin().getY();
+            tf_msg.transform.translation.z = transform.getOrigin().getZ();
+            tf_msg.transform.rotation.x = transform.getRotation().getX();
+            tf_msg.transform.rotation.y = transform.getRotation().getY();
+            tf_msg.transform.rotation.z = transform.getRotation().getZ();
+            tf_msg.transform.rotation.w = transform.getRotation().getW();
+            tf_msg_list.transforms.push_back(tf_msg);
+            br.sendTransform(tf_msg);
+        }
     }
+    tf_list_pub_.publish(tf_msg_list);
+
 }
 
 // rotate vector:
@@ -383,6 +390,7 @@ int main(int argc, char **argv) {
     // Publisher:
   image_transport::ImageTransport it(nh);
   result_img_pub_ = it.advertise("/result_img", 1);
+  tf_list_pub_    = nh.advertise<tf2_msgs::TFMessage>("/tf_list", 10);
 
     ros::spin();
     return 0;
