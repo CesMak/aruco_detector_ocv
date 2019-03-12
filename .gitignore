@@ -1,3 +1,5 @@
 cmake-build-debug/
 .idea/
 .vscode/
+
+data/tf_example2_img.bag
