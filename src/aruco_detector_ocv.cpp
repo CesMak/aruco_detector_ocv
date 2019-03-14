@@ -11,6 +11,7 @@
 #include "sensor_msgs/Image.h"
 #include "sensor_msgs/CameraInfo.h"
 #include "std_msgs/Empty.h"
+#include "std_msgs/Int16.h"
 
 // ROS image geometry
 #include <image_geometry/pinhole_camera_model.h>
@@ -21,6 +22,7 @@
 #include <tf2/LinearMath/Quaternion.h>
 #include <tf2/LinearMath/Transform.h>
 #include <tf2_msgs/TFMessage.h>
+#include <alfons_msgs/ArucoInfo.h>
 
 // ROS CvBridge
 #include "cv_bridge/cv_bridge.h"
@@ -40,6 +42,7 @@ using namespace cv;
 // Publisher
 image_transport::Publisher result_img_pub_;
 ros::Publisher tf_list_pub_;
+ros::Publisher aruco_info_pub_;
 
 
 #define SSTR(x) static_cast<std::ostringstream&>(std::ostringstream() << std::dec << x).str()
@@ -148,6 +151,20 @@ void callback(const ImageConstPtr &image_msg) {
     vector<vector<Point2f>> corners, rejected;
     aruco::detectMarkers(image, dictionary, corners, ids, detector_params, rejected);
 
+    // publish aruco info:
+    alfons_msgs::ArucoInfo ar_msg;
+    for(int i = 0;i<ids.size();i++)
+    {
+        //std_msgs::Int16 id_num = ;
+        vector<Point2f> one_corner = corners[i];
+        ar_msg.marker_ids.push_back(ids[i]);
+        ar_msg.center_x_px.push_back((one_corner[0].x+one_corner[1].x+one_corner[2].x+one_corner[3].x)/4);
+        ar_msg.center_y_px.push_back((one_corner[0].y+one_corner[1].y+one_corner[2].y+one_corner[3].y)/4);
+    }
+    ar_msg.header.stamp = ros::Time::now();
+    ar_msg.header.frame_id = "camera";
+    aruco_info_pub_.publish(ar_msg);
+ 
     // Show image if no markers are detected
     if (ids.empty()) {
        // ROS_INFO("Markers not found");
@@ -181,7 +198,7 @@ if(ids.size()>0)
     // Draw marker poses
     if (show_detections) {
         aruco::drawDetectedMarkers(display_image, corners, ids);
-
+    }
 	if (result_img_pub_.getNumSubscribers() > 0)
 	{
 
@@ -191,12 +208,12 @@ if(ids.size()>0)
 	{
 	double prec = getPrec(ids,i);
 	if(prec>=min_prec_value)
-{
-	Vec3d distance_z_first = translation_vectors[i];
-	double distance_z = ROUND3(distance_z_first[2]);
-                cv::putText(display_image, "id: "+SSTR(ids[i])+" z dis: "+SSTR(distance_z)+" m  "+SSTR(ROUND2(prec))+" %", cv::Point(10, 70+i*30), cv::FONT_HERSHEY_SIMPLEX, 0.9, CV_RGB(0, 255, 0), 2);
-		result_img_pub_.publish(cv_bridge::CvImage(std_msgs::Header(), "bgr8", display_image).toImageMsg());
-}
+        {
+        Vec3d distance_z_first = translation_vectors[i];
+        double distance_z = ROUND3(distance_z_first[2]);
+                    cv::putText(display_image, "id: "+SSTR(ids[i])+" z dis: "+SSTR(distance_z)+" m  "+SSTR(ROUND2(prec))+" %", cv::Point(10, 70+i*30), cv::FONT_HERSHEY_SIMPLEX, 0.9, CV_RGB(0, 255, 0), 2);
+            result_img_pub_.publish(cv_bridge::CvImage(std_msgs::Header(), "bgr8", display_image).toImageMsg());
+        }
 	}
 	}	
         //imshow("markers", display_image); // opencv im_show
@@ -205,7 +222,7 @@ if(ids.size()>0)
             ROS_INFO("ESC pressed, exit the program");
             ros::shutdown();
         }
-    }
+
 
     // Publish TFs for each of the markers
     static tf2_ros::TransformBroadcaster br;
@@ -391,6 +408,8 @@ int main(int argc, char **argv) {
   image_transport::ImageTransport it(nh);
   result_img_pub_ = it.advertise("/result_img", 1);
   tf_list_pub_    = nh.advertise<tf2_msgs::TFMessage>("/tf_list", 10);
+
+  aruco_info_pub_ = nh.advertise<alfons_msgs::ArucoInfo>("/aruco_list", 10);
 
     ros::spin();
     return 0;

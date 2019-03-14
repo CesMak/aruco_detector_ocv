@@ -22,7 +22,7 @@
    <!--   usb_cam node, as pixel_format use yuyv or mjpeg -->
    <group if="$(arg use_camera)" >
   <node name="usb_cam" pkg="usb_cam" type="usb_cam_node" output="screen">
-    <param name="video_device" value="/dev/video1" />
+    <param name="video_device" value="/dev/video0" />
     <param name="image_width" value="$(arg image_width)" />
     <param name="image_height" value="$(arg image_height)" />
     <param name="pixel_format" value="yuyv" />
