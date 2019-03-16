@@ -13,10 +13,9 @@ With this package you are able to:
 **Author: Markus Lamprecht<br />
 Maintainer: Markus Lamprecht, 2f4yor@gmail.com<br />**
 
-**Video**
-<a alt="aruco_detector_example" href="https://www.youtube.com/watch?v=U0ul4WIQFUM"><img src="data/rviz_example.png" align="left" width="700" ></a>
+Video:
 
-<br/>
+<a alt="aruco_detector_example" href="https://www.youtube.com/watch?v=U0ul4WIQFUM"><img src="data/rviz_example.png" align="left" width="700" ></a>
 
 ## Installation
 
