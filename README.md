@@ -2,9 +2,7 @@
 
 ## Overview
 
-This is a [ROS] package developed for ... with a mobile robot. 
-
-The aruco_detector_osv (aruco_detector_opencv) uses the #include <opencv2/aruco.hpp> library instead of using #include <aruco/aruco.h> (ros-kinetic-aruco). This package was tested on ubuntu 16.04, ROS Kinetic with a Logitech C920 camera. 
+The aruco_detector_osv (aruco_detector_opencv) uses the ```#include <opencv2/aruco.hpp>```  library instead of using ```#include <aruco/aruco.h>``` (ros-kinetic-aruco). This package was tested on ubuntu 16.04, ROS Kinetic with a Logitech C920 camera. 
 
 With this package you are able to:
 
@@ -12,13 +10,11 @@ With this package you are able to:
 * a certainty parameter of how robust the arcuco marker is detected. 
 * a result image with the detected markers highlighted is published.
 
-Please calibrate your camera first using: [camera_calibration](http://wiki.ros.org/camera_calibration).
-
 **Author: Markus Lamprecht<br />
 Maintainer: Markus Lamprecht, 2f4yor@gmail.com<br />**
 
-<img alt="aruco_detector_example" src="data/rviz_example.png" width="700">
-<a alt="aruco_detector_example" href="https://www.youtube.com/watch?v=U0ul4WIQFUM"><img src="data/rviz_example.png" align="left" width="500" ></a>
+**Video**
+<a alt="aruco_detector_example" href="https://www.youtube.com/watch?v=U0ul4WIQFUM"><img src="data/rviz_example.png" align="left" width="700" ></a>
 
 ## Installation
 
@@ -28,6 +24,7 @@ This software is built on the Robotic Operating System ([ROS]), which needs to b
 
 - [alfons_msgs]
 - [cv_bridge]
+- [opencv]
 - [tf2_ros]
 
 ### Building
@@ -50,6 +47,8 @@ roslaunch aruco_detector_ocv detector.launch
 ```
 
 ## Basic Usage
+
+Please calibrate your camera first using: [camera_calibration](http://wiki.ros.org/camera_calibration).
 
 See all adjustments in the **aruco_detector_osv/launch/detector.launch**
 
