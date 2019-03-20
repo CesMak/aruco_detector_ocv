@@ -22,7 +22,7 @@
    <!--   usb_cam node, as pixel_format use yuyv or mjpeg -->
    <group if="$(arg use_camera)" >
   <node name="usb_cam" pkg="usb_cam" type="usb_cam_node" output="screen">
-    <param name="video_device" value="/dev/video0" />
+    <param name="video_device" value="/dev/video1" />
     <param name="image_width" value="$(arg image_width)" />
     <param name="image_height" value="$(arg image_height)" />
     <param name="pixel_format" value="yuyv" />
@@ -54,13 +54,13 @@
 <node if="$(eval arg('image_width') ==1920)" name="camera_info" pkg="rostopic" type="rostopic"
   args="pub /camera/camera_info sensor_msgs/CameraInfo
  '{header: {seq: 0, stamp: {secs: 0, nsecs: 0}, frame_id: 'camera1'},
-  height: 480, width: 640, distortion_model: 'plumb_bob',
+  height: 1080, width: 1920, distortion_model: 'plumb_bob',
   D: [0.061957, -0.124832, 0.002573, -0.004753, 0.0],
   K: [1179.598752, 0.0, 928.099247, 0.0, 1177.000389, 558.635461, 0.0, 0.0, 1.0],
   R: [1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0],
   P: [1156.897217, 0.0, 908.598013, 0.0, 0.0, 1188.634277, 561.054263, 0.0, 0.0, 0.0, 1.0, 0.0],
   binning_x: 0, binning_y: 0,
-  roi: {x_offset: 0, y_offset: 0, height: 480, width: 640, do_rectify: false}}' -r 2"/>
+  roi: {x_offset: 0, y_offset: 0, height: 1080, width: 1920, do_rectify: false}}' -r 2"/>
 
     <node pkg="aruco_detector_ocv" type="node" name="aruco_detector_ocv" output="screen">
         <param name="camera" type="string" value="$(arg camera)"/>
